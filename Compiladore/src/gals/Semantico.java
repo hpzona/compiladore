@@ -335,6 +335,7 @@ public class Semantico implements Constants {
                     throw new SemanticError("id já declarado.", token.getPosition());
                 } else {
                     this.metodoAux = new Metodo(token.getLexeme(), CategoriaIDEnum.METODO, this.NA);
+                    this.metodoAux.setRetornoNull(retornoNull);
                     this.tabSimbolos.addSimbolo(this.metodoAux);
                     this.NPF = 0;
                     this.NA++;
@@ -368,7 +369,7 @@ public class Semantico implements Constants {
                 break;
 
             /*  
-             #120 - Atualiza tipo do método na TS          
+             #120 - Retira da TS as variáveis decl. localmente Atualiza nível atual ( NA := NA - 1)          
              */
             case 120:
                 this.tabSimbolos.removeNivelAtual(this.NA);
@@ -450,6 +451,7 @@ public class Semantico implements Constants {
              */
             case 125:
                 this.metodoAux.setRetornoNull(true);
+                this.retornoNull = true;
                 break;
             /*  
              #126 - Seta MPP para “referência” 
