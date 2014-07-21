@@ -377,7 +377,7 @@ public class Semantico implements Constants {
 
                 this.metodoAux = (Metodo) this.tabSimbolos.getSimbolo(this.pilhaIdMetodo.peek());
                 if (!this.metodoAux.isRetornoNull() && !this.temRetorno) {
-                    throw new SemanticError("Método sem declaração de retorno.", token.getPosition());
+                    throw new SemanticError("Método com tipo deve ter retorno.", token.getPosition());
                 }
                 this.pilhaIdMetodo.pop();
                 this.pilhaRetorno.pop();
@@ -725,7 +725,7 @@ public class Semantico implements Constants {
             case 143:
                 this.tipoExprAux = this.pilhaTipoExpressaoTipoPreDefinido.pop();
                 TipoPreDefinidoEnum tipoExpSimples = this.pilhaTipoExpressaoSimplesTipoPreDefinido.pop();
-
+                        
                 if (this.tipoExprAux != tipoExpSimples) {
                     if ((this.tipoExprAux == TipoPreDefinidoEnum.INTEIRO && tipoExpSimples == TipoPreDefinidoEnum.REAL)
                             || (this.tipoExprAux == TipoPreDefinidoEnum.REAL && tipoExpSimples == TipoPreDefinidoEnum.INTEIRO)
