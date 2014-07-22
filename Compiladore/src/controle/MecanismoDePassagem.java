@@ -1,6 +1,6 @@
 package controle;
 
 // Classe desenvolvida por Lucas e Willian
-public enum PassagemValOuRefEnum {
+public enum MecanismoDePassagem {
     VALOR,REFERENCIA
 }

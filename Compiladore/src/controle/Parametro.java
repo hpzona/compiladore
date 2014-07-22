@@ -4,7 +4,7 @@ package controle;
 public class Parametro extends Simbolo{
       
     protected TipoEnum tipoPreDefinidoEnum;
-    protected PassagemValOuRefEnum passagemValOuRefEnum;
+    protected MecanismoDePassagem passagemValOuRefEnum;
     protected int deslocamento;
 
     public Parametro() {
@@ -18,13 +18,13 @@ public class Parametro extends Simbolo{
         super(nome, nivel);
     }
 
-    public Parametro(int deslocamento, PassagemValOuRefEnum passagemValOuRefEnum, TipoEnum tipoPreDefinidoEnum) {
+    public Parametro(int deslocamento, MecanismoDePassagem passagemValOuRefEnum, TipoEnum tipoPreDefinidoEnum) {
         this.deslocamento = deslocamento;
         this.passagemValOuRefEnum = passagemValOuRefEnum;
         this.tipoPreDefinidoEnum = tipoPreDefinidoEnum;
     }
 
-    public Parametro(int deslocamento, PassagemValOuRefEnum passagemValOuRefEnum, TipoEnum tipoPreDefinidoEnum, String nome, CategoriaIDEnum categoria, int nivel) {
+    public Parametro(int deslocamento, MecanismoDePassagem passagemValOuRefEnum, TipoEnum tipoPreDefinidoEnum, String nome, CategoriaIDEnum categoria, int nivel) {
         super(nome, categoria, nivel);
         this.deslocamento = deslocamento;
         this.passagemValOuRefEnum = passagemValOuRefEnum;
@@ -39,11 +39,11 @@ public class Parametro extends Simbolo{
         this.deslocamento = deslocamento;
     }
 
-    public PassagemValOuRefEnum getPassagemValOuRefEnum() {
+    public MecanismoDePassagem getPassagemValOuRefEnum() {
         return passagemValOuRefEnum;
     }
     
-    public void setPassagemValOuRefEnum(PassagemValOuRefEnum passagemValOuRefEnum) {
+    public void setPassagemValOuRefEnum(MecanismoDePassagem passagemValOuRefEnum) {
         this.passagemValOuRefEnum = passagemValOuRefEnum;
     }
 
