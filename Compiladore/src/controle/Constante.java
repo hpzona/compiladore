@@ -4,18 +4,18 @@ package controle;
 public class Constante extends Simbolo {
 
     protected String valor;
-    protected TipoPreDefinidoEnum tipoPreDefinidoEnum;
+    protected TipoEnum tipoPreDefinidoEnum;
 
     public Constante() {
     }
 
-    /*public Constante(TipoPreDefinidoEnum tipoPreDefinidoEnum, String valor, String nome, CategoriaIDEnum categoria, int nivel) {
+    /*public Constante(TipoEnum tipoPreDefinidoEnum, String valor, String nome, CategoriaIDEnum categoria, int nivel) {
         super(nome, categoria, nivel);
         this.tipoPreDefinidoEnum = tipoPreDefinidoEnum;
         this.valor = valor;
     }*/
 
-    /*public Constante(TipoPreDefinidoEnum tipoPreDefinidoEnum, String valor) {
+    /*public Constante(TipoEnum tipoPreDefinidoEnum, String valor) {
         this.tipoPreDefinidoEnum = tipoPreDefinidoEnum;
         this.valor = valor;
     }*/
@@ -32,11 +32,11 @@ public class Constante extends Simbolo {
         return valor;
     }
     
-    public TipoPreDefinidoEnum getTipoPreDefinidoEnum() {
+    public TipoEnum getTipoPreDefinidoEnum() {
         return tipoPreDefinidoEnum;
     }
 
-    public void setTipoPreDefinidoEnum(TipoPreDefinidoEnum tipoPreDefinidoEnum) {
+    public void setTipoPreDefinidoEnum(TipoEnum tipoPreDefinidoEnum) {
         this.tipoPreDefinidoEnum = tipoPreDefinidoEnum;
     }
 }

@@ -8,7 +8,7 @@ public class Metodo extends Simbolo{
     protected int enderecoDaPrimeiraInstrucao;
     protected int numeroDeParametros;
     protected List<Parametro> listaDeParametros;
-    protected TipoPreDefinidoEnum resultadoDoTipoPreDefinidoEnum; 
+    protected TipoEnum resultadoDoTipo; 
     protected boolean retornoNull;
 
     public Metodo() {
@@ -18,19 +18,19 @@ public class Metodo extends Simbolo{
         super(nome, categoria, nivel);
     }
 
-    public Metodo(int endereço1Instrução, int numParametros, List<Parametro> listaDeParametros, TipoPreDefinidoEnum resultadoDoTipoPreDefinidoEnum) {
+    public Metodo(int endereço1Instrução, int numParametros, List<Parametro> listaDeParametros, TipoEnum resultadoDoTipo) {
         this.enderecoDaPrimeiraInstrucao = endereço1Instrução;
         this.numeroDeParametros = numParametros;
         this.listaDeParametros = listaDeParametros;
-        this.resultadoDoTipoPreDefinidoEnum = resultadoDoTipoPreDefinidoEnum;
+        this.resultadoDoTipo = resultadoDoTipo;
     }
 
-    public Metodo(int endereço1Instrução, int numParametros, List<Parametro> listaDeParametros, TipoPreDefinidoEnum resultadoDoTipoPreDefinidoEnum, String nome, CategoriaIDEnum categoria, int nivel) {
+    public Metodo(int endereço1Instrução, int numParametros, List<Parametro> listaDeParametros, TipoEnum resultadoDoTipo, String nome, CategoriaIDEnum categoria, int nivel) {
         super(nome, categoria, nivel);
         this.enderecoDaPrimeiraInstrucao = endereço1Instrução;
         this.numeroDeParametros = numParametros;
         this.listaDeParametros = listaDeParametros;
-        this.resultadoDoTipoPreDefinidoEnum = resultadoDoTipoPreDefinidoEnum;
+        this.resultadoDoTipo = resultadoDoTipo;
     }   
 
     public int getEnderecoPrimeiraInstrucao() {
@@ -45,8 +45,8 @@ public class Metodo extends Simbolo{
         return numeroDeParametros;
     }
 
-    public TipoPreDefinidoEnum getResultado() {
-        return resultadoDoTipoPreDefinidoEnum;
+    public TipoEnum getResultado() {
+        return resultadoDoTipo;
     }
 
     public boolean isRetornoNull() {
@@ -65,8 +65,8 @@ public class Metodo extends Simbolo{
         this.numeroDeParametros = numParametros;
     }
 
-    public void setResultado(TipoPreDefinidoEnum resultado) {
-        this.resultadoDoTipoPreDefinidoEnum = resultado;
+    public void setResultado(TipoEnum resultado) {
+        this.resultadoDoTipo = resultado;
     }
 
     public void setRetornoNull(boolean retornoNull) {

@@ -57,10 +57,10 @@ public class Simbolo {
 
     @Override
     public int hashCode() {
-        int hash = 5;
-        hash = 89 * hash + Objects.hashCode(this.nomeDoSimbolo);
-        hash = 89 * hash + (this.categoria != null ? this.categoria.hashCode() : 0);
-        hash = 89 * hash + this.nivel;
+        int hash = 8;
+        hash = 46 * hash + Objects.hashCode(this.nomeDoSimbolo);
+        hash = 46 * hash + (this.categoria != null ? this.categoria.hashCode() : 0);
+        hash = 46 * hash + this.nivel;
         return hash;
     }
 }

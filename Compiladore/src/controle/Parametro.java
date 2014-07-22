@@ -3,7 +3,7 @@ package controle;
 // Classe desenvolvida por Lucas e Willian
 public class Parametro extends Simbolo{
       
-    protected TipoPreDefinidoEnum tipoPreDefinidoEnum;
+    protected TipoEnum tipoPreDefinidoEnum;
     protected PassagemValOuRefEnum passagemValOuRefEnum;
     protected int deslocamento;
 
@@ -18,13 +18,13 @@ public class Parametro extends Simbolo{
         super(nome, nivel);
     }
 
-    public Parametro(int deslocamento, PassagemValOuRefEnum passagemValOuRefEnum, TipoPreDefinidoEnum tipoPreDefinidoEnum) {
+    public Parametro(int deslocamento, PassagemValOuRefEnum passagemValOuRefEnum, TipoEnum tipoPreDefinidoEnum) {
         this.deslocamento = deslocamento;
         this.passagemValOuRefEnum = passagemValOuRefEnum;
         this.tipoPreDefinidoEnum = tipoPreDefinidoEnum;
     }
 
-    public Parametro(int deslocamento, PassagemValOuRefEnum passagemValOuRefEnum, TipoPreDefinidoEnum tipoPreDefinidoEnum, String nome, CategoriaIDEnum categoria, int nivel) {
+    public Parametro(int deslocamento, PassagemValOuRefEnum passagemValOuRefEnum, TipoEnum tipoPreDefinidoEnum, String nome, CategoriaIDEnum categoria, int nivel) {
         super(nome, categoria, nivel);
         this.deslocamento = deslocamento;
         this.passagemValOuRefEnum = passagemValOuRefEnum;
@@ -47,11 +47,11 @@ public class Parametro extends Simbolo{
         this.passagemValOuRefEnum = passagemValOuRefEnum;
     }
 
-    public TipoPreDefinidoEnum getTipoPreDefinidoEnum() {
+    public TipoEnum getTipoPreDefinidoEnum() {
         return tipoPreDefinidoEnum;
     }    
 
-    public void setTipoPreDefinidoEnum(TipoPreDefinidoEnum tipoPreDefinidoEnum) {
+    public void setTipoPreDefinidoEnum(TipoEnum tipoPreDefinidoEnum) {
         this.tipoPreDefinidoEnum = tipoPreDefinidoEnum;
     }    
 }

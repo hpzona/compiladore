@@ -4,7 +4,7 @@ import controle.CategoriaIDEnum;
 import controle.Constante;
 import controle.ContextoLIDEnum;
 import controle.Converte;
-import controle.ExpressaoEnum;
+import controle.ContextoExpressaoEnum;
 import controle.Metodo;
 import controle.OperadorAddEnum;
 import controle.OperadorMultEnum;
@@ -15,20 +15,16 @@ import controle.Simbolo;
 import controle.SubCategoriaEnum;
 import controle.TabelaDeSimbolos;
 import controle.TipoDeVariavel;
-import controle.TipoDeVariavelEnum;
-import controle.TipoPreDefinidoEnum;
+import controle.SubCategoriaVariavelEnum;
+import controle.TipoEnum;
 import controle.Variavel;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
-import javax.swing.JOptionPane;
 
 public class Semantico implements Constants {
 
     private TabelaDeSimbolos tabSimbolos;
-
     private int NA;
     private Stack<Integer> deslocamento = new Stack<>();
     private int primeiroID;
@@ -36,19 +32,19 @@ public class Semantico implements Constants {
     private String valConst;
     private int quantidadeID;
     private int numeroDeElementos;
-    private TipoPreDefinidoEnum tipoAtualTipoPreDefinido;
+    private TipoEnum tipoAtualTipoPreDefinido;
     private SubCategoriaEnum subCategoria;
     private CategoriaIDEnum categoriaAtual;
     private ContextoLIDEnum contextoLID;
-    private TipoPreDefinidoEnum tipoConstanteTipoPreDefinido;
+    private TipoEnum tipoConstanteTipoPreDefinido;
     private int NPF;
     private int NPA;
     private PassagemValOuRefEnum passagemValOuRef;
     private List<Parametro> listaDeParametros = new ArrayList<>();
-    private TipoPreDefinidoEnum tipoVarTipoPreDefinido;
-    private TipoPreDefinidoEnum tipoLadoEsqTipoPreDefinido;
-    private TipoPreDefinidoEnum retornoMetodoTipoPreDefinido;
-    private TipoPreDefinidoEnum tipoExpressaoTipoPreDefinido;
+    private TipoEnum tipoVarTipoPreDefinido;
+    private TipoEnum tipoLadoEsqTipoPreDefinido;
+    private TipoEnum retornoMetodoTipoPreDefinido;
+    private TipoEnum tipoExpressaoTipoPreDefinido;
     private boolean retornoNull;
     private boolean temRetorno = false;
 
@@ -60,12 +56,12 @@ public class Semantico implements Constants {
     private Stack<OperadorAddEnum> pilhaOperadorAdd = new Stack<>();
     private Stack<OperadorRelEnum> pilhaOperadorRelacional = new Stack<>();
     private Stack<OperadorMultEnum> pilhaOperadorMult = new Stack<>();
-    private Stack<TipoPreDefinidoEnum> pilhaTipoTermoTipoPreDefinido = new Stack<>();
-    private Stack<TipoPreDefinidoEnum> pilhaTipoExpressaoSimplesTipoPreDefinido = new Stack<>();
-    private Stack<TipoPreDefinidoEnum> pilhaTipoExpressaoTipoPreDefinido = new Stack<>();
-    private Stack<ExpressaoEnum> pilhaExpressao = new Stack<>();
-    private Stack<TipoPreDefinidoEnum> pilhaTipoVariavelIndexadaTipoPreDefinido = new Stack<>();
-    private Stack<TipoPreDefinidoEnum> pilhaTipoFatorTipoPreDefinido = new Stack<>();
+    private Stack<TipoEnum> pilhaTipoTermoTipoPreDefinido = new Stack<>();
+    private Stack<TipoEnum> pilhaTipoExpressaoSimplesTipoPreDefinido = new Stack<>();
+    private Stack<TipoEnum> pilhaTipoExpressaoTipoPreDefinido = new Stack<>();
+    private Stack<ContextoExpressaoEnum> pilhaExpressao = new Stack<>();
+    private Stack<TipoEnum> pilhaTipoVariavelIndexadaTipoPreDefinido = new Stack<>();
+    private Stack<TipoEnum> pilhaTipoFatorTipoPreDefinido = new Stack<>();
     private Stack<Integer> pilhaNPA = new Stack<>();
     private Stack<PassagemValOuRefEnum> pilhaERef = new Stack<>();
     private Stack<Stack<Parametro>> pilhaValidarParametros = new Stack<>();
@@ -78,26 +74,11 @@ public class Semantico implements Constants {
     private Variavel variavelAux;
     private Constante constanteAux;
     private OperadorRelEnum operadorRelAux;
-    private TipoPreDefinidoEnum tipoExprAux;
-    private TipoPreDefinidoEnum tipoTermoAux;
-    private TipoPreDefinidoEnum tipoFatorAux;
+    private TipoEnum tipoExprAux;
+    private TipoEnum tipoTermoAux;
+    private TipoEnum tipoFatorAux;
 
     public void executeAction(int action, Token token) throws SemanticError {
-        /*try {
-         System.out.println("Ação " + action + " - token: " + token.getLexeme());
-         Method execAcao = this.getClass().getMethod("execAcao" + action, Token.class);
-         execAcao.invoke(this, token);
-         } catch (InvocationTargetException e) {
-         Throwable targetException = e.getTargetException();
-         if (targetException instanceof SemanticError) {
-         SemanticError semanticError = (SemanticError) targetException;
-         throw semanticError;
-         }
-         } catch (Exception e) {
-         JOptionPane.showMessageDialog(null, "Erro");
-         throw new RuntimeException(e);
-         }*/
-
         switch (action) {
             /*
              #101 – Inicializa com zero nível atual (NA) e deslocamento
@@ -129,7 +110,7 @@ public class Semantico implements Constants {
             /*
              #104 - Atualiza atributos dos id de <lid> de acordo com a CategoriaAtual e com a SubCategoria. 
              Para cálculo do Deslocamento de variáveis, considere que toda variável ocupa 1 célula de memória 
-             (exceto vetor que ocupa 1 célula para cada elemento)                  
+             (exceto VETOR que ocupa 1 célula para cada elemento)                  
              */
             case 104:
                 int pos = this.primeiroID;
@@ -150,21 +131,21 @@ public class Semantico implements Constants {
                         this.simboloAux = this.tabSimbolos.getSimbolo(pos);
                         this.variavelAux = new Variavel(this.simboloAux.getNomeDoSimbolo(), this.simboloAux.getCategoria(), this.simboloAux.getNivel());
 
-                        if (this.subCategoria == SubCategoriaEnum.preDefinido) {
+                        if (this.subCategoria == SubCategoriaEnum.PREDEFINIDO) {
                             TipoDeVariavel tipo = new TipoDeVariavel(Converte.getTipoDeVariavelEnum(this.tipoAtualTipoPreDefinido), 0, null);
                             variavelAux.setTipoDeVariavel(tipo);
                             variavelAux.setCategoria(categoriaAtual);
                             variavelAux.setDeslocamento(desloc);
                             desloc++;
-                        } else if (this.subCategoria == SubCategoriaEnum.cadeia) {
+                        } else if (this.subCategoria == SubCategoriaEnum.CADEIA) {
                             TipoDeVariavel tipo = new TipoDeVariavel(Converte.getTipoDeVariavelEnum(this.tipoAtualTipoPreDefinido), Integer.parseInt(this.valConst), null);
                             variavelAux.setTipoDeVariavel(tipo);
                             variavelAux.setCategoria(this.categoriaAtual);
                             variavelAux.setDeslocamento(desloc);
                             desloc++;
 
-                        } else if (this.subCategoria == SubCategoriaEnum.vetor) {
-                            TipoDeVariavel tipo = new TipoDeVariavel(TipoDeVariavelEnum.VETOR, numeroDeElementos, this.tipoAtualTipoPreDefinido);
+                        } else if (this.subCategoria == SubCategoriaEnum.VETOR) {
+                            TipoDeVariavel tipo = new TipoDeVariavel(SubCategoriaVariavelEnum.VETOR, numeroDeElementos, this.tipoAtualTipoPreDefinido);
                             variavelAux.setTipoDeVariavel(tipo);
                             variavelAux.setCategoria(this.categoriaAtual);
                             variavelAux.setDeslocamento(desloc);
@@ -181,50 +162,50 @@ public class Semantico implements Constants {
              #105 - TipoAtual := “inteiro”                
              */
             case 105:
-                this.tipoAtualTipoPreDefinido = TipoPreDefinidoEnum.INTEIRO;
+                this.tipoAtualTipoPreDefinido = TipoEnum.INTEIRO;
                 break;
             /*
              #106 - TipoAtual := “real”                
              */
             case 106:
-                this.tipoAtualTipoPreDefinido = TipoPreDefinidoEnum.REAL;
+                this.tipoAtualTipoPreDefinido = TipoEnum.REAL;
                 break;
             /*
              #107 - TipoAtual := “booleano”                
              */
             case 107:
-                this.tipoAtualTipoPreDefinido = TipoPreDefinidoEnum.BOOLEANO;
+                this.tipoAtualTipoPreDefinido = TipoEnum.BOOLEANO;
                 break;
             /*
              #108 - TipoAtual := “caracter”                
              */
             case 108:
-                this.tipoAtualTipoPreDefinido = TipoPreDefinidoEnum.CARACTER;
+                this.tipoAtualTipoPreDefinido = TipoEnum.CARACTER;
                 break;
 
             /*
              #109 - Se tipoConstanteTipoPreDefinido <> “inteiro” então ERRO(“esperava - se uma const. inteira”)
-             senão se valConst > 256 então ERRO(“cadeia > que o permitido”) 
-             senão TipoAtual := “cadeia”                
+             senão se valConst > 256 então ERRO(“CADEIA > que o permitido”) 
+             senão TipoAtual := “CADEIA”                
              */
             case 109:
-                if (tipoConstanteTipoPreDefinido != TipoPreDefinidoEnum.INTEIRO) {
+                if (tipoConstanteTipoPreDefinido != TipoEnum.INTEIRO) {
                     throw new SemanticError("Esperava-se uma constante inteira.", token.getPosition());
                 } else if (Integer.parseInt(valConst) > 256) {
                     throw new SemanticError("Cadeia maior do que o permitido.", token.getPosition());
                 } else {
-                    this.tipoAtualTipoPreDefinido = TipoPreDefinidoEnum.CADEIA;
+                    this.tipoAtualTipoPreDefinido = TipoEnum.CADEIA;
                 }
                 break;
             /*
-             #110 - Se TipoAtual = “cadeia” Então ERRO(“Vetor do tipo cadeia não é permitido”)
-             senão SubCategoria := “vetor”                
+             #110 - Se TipoAtual = “CADEIA” Então ERRO(“Vetor do tipo CADEIA não é permitido”)
+             senão SubCategoria := “VETOR”                
              */
             case 110:
-                if (tipoAtualTipoPreDefinido == TipoPreDefinidoEnum.CADEIA) {
+                if (tipoAtualTipoPreDefinido == TipoEnum.CADEIA) {
                     throw new SemanticError("Vetor do tipo cadeia não é permitido.", token.getPosition());
                 } else {
-                    this.subCategoria = SubCategoriaEnum.vetor;
+                    this.subCategoria = SubCategoriaEnum.VETOR;
                 }
                 break;
             /*
@@ -232,22 +213,22 @@ public class Semantico implements Constants {
              Senão Seta numeroDeElementos para valConst            
              */
             case 111:
-                if (tipoConstanteTipoPreDefinido != TipoPreDefinidoEnum.INTEIRO) {
+                if (tipoConstanteTipoPreDefinido != TipoEnum.INTEIRO) {
                     throw new SemanticError("A dimensão deve ser uma constante inteira.", token.getPosition());
                 } else {
                     this.numeroDeElementos = Integer.parseInt(valConst);
                 }
                 break;
             /*
-             #112 -  Se TipoAtual = “cadeia” Então SubCategoria := “cadeia”
+             #112 -  Se TipoAtual = “CADEIA” Então SubCategoria := “CADEIA”
              Senão SubCategoria := “pré-definido”            
              */
             case 112:
-                if (this.tipoAtualTipoPreDefinido == TipoPreDefinidoEnum.CADEIA) {
-                    this.subCategoria = SubCategoriaEnum.cadeia;
+                if (this.tipoAtualTipoPreDefinido == TipoEnum.CADEIA) {
+                    this.subCategoria = SubCategoriaEnum.CADEIA;
                     return;
                 } else {
-                    this.subCategoria = SubCategoriaEnum.preDefinido;
+                    this.subCategoria = SubCategoriaEnum.PREDEFINIDO;
                 }
                 break;
             /*
@@ -284,10 +265,10 @@ public class Semantico implements Constants {
 
                             if (this.simboloAux.getCategoria() == CategoriaIDEnum.VARIAVEL) {
                                 this.variavelAux = (Variavel) this.simboloAux;
-                                valido = !(this.variavelAux.getTipoDeVariavel().getTipoDeVariavelEnum() == TipoDeVariavelEnum.BOOLEANO || this.variavelAux.getTipoDeVariavel().getTipoDeVariavelEnum() == TipoDeVariavelEnum.VETOR);
+                                valido = !(this.variavelAux.getTipoDeVariavel().getTipoDeVariavelEnum() == SubCategoriaVariavelEnum.BOOLEANO || this.variavelAux.getTipoDeVariavel().getTipoDeVariavelEnum() == SubCategoriaVariavelEnum.VETOR);
                             } else if (this.simboloAux.getCategoria() == CategoriaIDEnum.PARAMETRO) {
                                 this.parametroAux = (Parametro) this.simboloAux;
-                                valido = !(this.parametroAux.getTipoPreDefinidoEnum() == TipoPreDefinidoEnum.BOOLEANO);
+                                valido = !(this.parametroAux.getTipoPreDefinidoEnum() == TipoEnum.BOOLEANO);
                             }
 
                             if (!valido) {
@@ -302,10 +283,10 @@ public class Semantico implements Constants {
                 }
                 break;
             /*
-             #114 - Se SubCategoria = “cadeia” ou “vetor” Então ERRO (“Apenas id de tipo pré-def podem ser declarados como constante”) senão CategoriaAtual := “constante”            
+             #114 - Se SubCategoria = “CADEIA” ou “VETOR” Então ERRO (“Apenas id de tipo pré-def podem ser declarados como constante”) senão CategoriaAtual := “constante”            
              */
             case 114:
-                if (this.subCategoria == SubCategoriaEnum.cadeia || this.subCategoria == SubCategoriaEnum.vetor) {
+                if (this.subCategoria == SubCategoriaEnum.CADEIA || this.subCategoria == SubCategoriaEnum.VETOR) {
                     throw new SemanticError("Apenas id de tipo pré-definido podem ser declarados como constante.", token.getPosition());
                 } else {
                     this.categoriaAtual = CategoriaIDEnum.CONSTANTE;
@@ -316,8 +297,9 @@ public class Semantico implements Constants {
              */
             case 115:
                 if (this.tipoConstanteTipoPreDefinido != this.tipoAtualTipoPreDefinido) {
-                    if(!(tipoAtualTipoPreDefinido == TipoPreDefinidoEnum.REAL && tipoConstanteTipoPreDefinido == TipoPreDefinidoEnum.INTEIRO))
-                    throw new SemanticError("Tipo da constante incorreto.", token.getPosition());
+                    if (!(tipoAtualTipoPreDefinido == TipoEnum.REAL && tipoConstanteTipoPreDefinido == TipoEnum.INTEIRO)) {
+                        throw new SemanticError("Tipo da constante incorreto.", token.getPosition());
+                    }
                 }
                 break;
             /*
@@ -383,7 +365,7 @@ public class Semantico implements Constants {
                 this.pilhaIdMetodo.pop();
                 this.pilhaRetorno.pop();
                 this.temRetorno = false;
-          
+
                 break;
             /*  
              #121 - Seta contextoLID para “par-formal” Marca pos.na TS do primeiro id da lista           
@@ -404,15 +386,15 @@ public class Semantico implements Constants {
              Senão Atualiza atributos dos id’s de <lid> : Cat.(“Parâmetro”), TipoAtual e MPP. Insere os par em uma lista auxiliar (ListaPar) a ser usada na chamada do método.            
              */
             case 123:
-                //AQUI CHAMARIA O CASE 112, se aceitasse cadeia também!!
-                if (this.tipoAtualTipoPreDefinido == TipoPreDefinidoEnum.CADEIA) {
-                    this.subCategoria = SubCategoriaEnum.cadeia;
+                //AQUI CHAMARIA O CASE 112, se aceitasse CADEIA também!!
+                if (this.tipoAtualTipoPreDefinido == TipoEnum.CADEIA) {
+                    this.subCategoria = SubCategoriaEnum.CADEIA;
                     return;
                 } else {
-                    this.subCategoria = SubCategoriaEnum.preDefinido;
+                    this.subCategoria = SubCategoriaEnum.PREDEFINIDO;
                 }
-                
-                if (this.subCategoria != SubCategoriaEnum.preDefinido) {
+
+                if (this.subCategoria != SubCategoriaEnum.PREDEFINIDO) {
                     throw new SemanticError("Parâmetros devem ser do tipo pré-definido.", token.getPosition());
                 } else {
                     pos = this.primeiroID;
@@ -436,10 +418,10 @@ public class Semantico implements Constants {
                 }
                 break;
             /*  
-             #124 - Se TipoAtual = “cadeia” Então ERRO (“Métodos devem ser de tipo pré-def.”) Senão Seta tipo do método para TipoAtual
+             #124 - Se TipoAtual = “CADEIA” Então ERRO (“Métodos devem ser de tipo pré-def.”) Senão Seta tipo do método para TipoAtual
              */
             case 124:
-                if (this.tipoAtualTipoPreDefinido == TipoPreDefinidoEnum.CADEIA) {
+                if (this.tipoAtualTipoPreDefinido == TipoEnum.CADEIA) {
                     throw new SemanticError("Métodos devem ser do tipo pré-definido e não cadeia.", token.getPosition());
                 } else {
                     this.retornoMetodoTipoPreDefinido = this.tipoAtualTipoPreDefinido;
@@ -483,7 +465,7 @@ public class Semantico implements Constants {
              */
             case 129:
                 this.tipoExpressaoTipoPreDefinido = this.pilhaTipoExpressaoTipoPreDefinido.pop();
-                if (this.tipoExpressaoTipoPreDefinido != TipoPreDefinidoEnum.BOOLEANO && this.tipoExpressaoTipoPreDefinido != TipoPreDefinidoEnum.INTEIRO) {
+                if (this.tipoExpressaoTipoPreDefinido != TipoEnum.BOOLEANO && this.tipoExpressaoTipoPreDefinido != TipoEnum.INTEIRO) {
                     throw new SemanticError("Tipo inválido da expressão.", token.getPosition());
                 } else {
                     ///////////////////// GERA CÓDIGO /////////////////////////
@@ -499,7 +481,7 @@ public class Semantico implements Constants {
              #131 - Seta ContextoEXPR para “impressão”
              */
             case 131:
-                this.pilhaExpressao.push(ExpressaoEnum.IMPRESSAO);
+                this.pilhaExpressao.push(ContextoExpressaoEnum.IMPRESSAO);
                 break;
             /*
              #132 - Se está fora do escopo de um método com tipo Então ERRO (“Retorne” só pode ser usado em Método com tipo”) 
@@ -513,9 +495,9 @@ public class Semantico implements Constants {
                     this.tipoExprAux = this.pilhaTipoExpressaoTipoPreDefinido.pop();
                     this.simboloAux = tabSimbolos.getSimbolo(this.pilhaIdMetodo.peek());
                     Metodo metodo = (Metodo) this.simboloAux;
-                    TipoPreDefinidoEnum tipoMetodo = metodo.getResultado();
+                    TipoEnum tipoMetodo = metodo.getResultado();
                     if (this.tipoExprAux != tipoMetodo) {
-                        if (!((tipoMetodo == TipoPreDefinidoEnum.REAL && this.tipoExprAux == TipoPreDefinidoEnum.INTEIRO) || (tipoMetodo == TipoPreDefinidoEnum.CADEIA && this.tipoExprAux == TipoPreDefinidoEnum.CARACTER))) {
+                        if (!((tipoMetodo == TipoEnum.REAL && this.tipoExprAux == TipoEnum.INTEIRO) || (tipoMetodo == TipoEnum.CADEIA && this.tipoExprAux == TipoEnum.CARACTER))) {
                             throw new SemanticError("Tipo de retorno inválido.", token.getPosition());
                         }
                         temRetorno = true;
@@ -527,7 +509,7 @@ public class Semantico implements Constants {
                 break;
 
             /*
-             #133 - Se categ. de id = “Variável” ou “Parâmetro” então se tipo de id = “vetor” então ERRO (“id. Deveria ser indexado”)
+             #133 - Se categ. de id = “Variável” ou “Parâmetro” então se tipo de id = “VETOR” então ERRO (“id. Deveria ser indexado”)
              senão tipoLadoEsqTipoPreDefinido := tipo de id
              senão ERRO (“id. deveria ser var ou par”)       
              */
@@ -536,7 +518,7 @@ public class Semantico implements Constants {
                 if (this.simboloAux.getCategoria() == CategoriaIDEnum.VARIAVEL || this.simboloAux.getCategoria() == CategoriaIDEnum.PARAMETRO) {
                     if (this.simboloAux.getCategoria() == CategoriaIDEnum.VARIAVEL) {
                         this.variavelAux = (Variavel) this.simboloAux;
-                        if (this.variavelAux.getTipoDeVariavel().getTipoDeVariavelEnum() == TipoDeVariavelEnum.VETOR) {
+                        if (this.variavelAux.getTipoDeVariavel().getTipoDeVariavelEnum() == SubCategoriaVariavelEnum.VETOR) {
                             throw new SemanticError("id deveria ser indexado.", token.getPosition());
                         } else {
                             this.tipoLadoEsqTipoPreDefinido = Converte.getTipoPreDefinidoEnum(this.variavelAux.getTipoDeVariavel().getTipoDeVariavelEnum());
@@ -558,7 +540,7 @@ public class Semantico implements Constants {
             case 134:
                 this.tipoExpressaoTipoPreDefinido = pilhaTipoExpressaoTipoPreDefinido.pop();
                 if (this.tipoLadoEsqTipoPreDefinido != this.tipoExpressaoTipoPreDefinido) {
-                    if (!((this.tipoExpressaoTipoPreDefinido == TipoPreDefinidoEnum.INTEIRO && this.tipoLadoEsqTipoPreDefinido == TipoPreDefinidoEnum.REAL) || (this.tipoExpressaoTipoPreDefinido == TipoPreDefinidoEnum.CARACTER && this.tipoLadoEsqTipoPreDefinido == TipoPreDefinidoEnum.CADEIA))) {
+                    if (!((this.tipoExpressaoTipoPreDefinido == TipoEnum.INTEIRO && this.tipoLadoEsqTipoPreDefinido == TipoEnum.REAL) || (this.tipoExpressaoTipoPreDefinido == TipoEnum.CARACTER && this.tipoLadoEsqTipoPreDefinido == TipoEnum.CADEIA))) {
                         throw new SemanticError("Tipos incompatíveis na expressão.", token.getPosition());
                     }
                 } else {
@@ -568,8 +550,8 @@ public class Semantico implements Constants {
 
             /*
              #135 – se categoria de id <> “variável” então ERRO (“esperava-se uma variável”) 
-             senao se tipo de id <> vetor e <> de cadeia então ERRO(“apenas vetores e cadeias podem ser indexados”) 
-             senão TipoVarIndexada = tipo de id (vetor ou cadeia) 
+             senao se tipo de id <> VETOR e <> de CADEIA então ERRO(“apenas vetores e cadeias podem ser indexados”) 
+             senão TipoVarIndexada = tipo de id (VETOR ou CADEIA) 
              */
             case 135:
                 this.simboloAux = tabSimbolos.getSimbolo(pilhaPosicaoID.peek());
@@ -577,7 +559,7 @@ public class Semantico implements Constants {
                     throw new SemanticError("Esperava-se uma variável.", token.getPosition());
                 } else {
                     this.variavelAux = (Variavel) this.simboloAux;
-                    if (this.variavelAux.getTipoDeVariavel().getTipoDeVariavelEnum() != TipoDeVariavelEnum.VETOR && this.variavelAux.getTipoDeVariavel().getTipoDeVariavelEnum() != TipoDeVariavelEnum.CADEIA) {
+                    if (this.variavelAux.getTipoDeVariavel().getTipoDeVariavelEnum() != SubCategoriaVariavelEnum.VETOR && this.variavelAux.getTipoDeVariavel().getTipoDeVariavelEnum() != SubCategoriaVariavelEnum.CADEIA) {
                         throw new SemanticError("Apenas vetores e cadeias podem ser indexados.", token.getPosition());
                     } else {
                         this.pilhaTipoVariavelIndexadaTipoPreDefinido.push(Converte.getTipoPreDefinidoEnum(this.variavelAux.getTipoDeVariavel().getTipoDeVariavelEnum()));
@@ -587,19 +569,19 @@ public class Semantico implements Constants {
 
             /*
              #136 – se TipoExpr <> “inteiro” então ERRO(“índice deveria ser inteiro”) 
-             senão se TipoVarIndexada = cadeia então tipoLadoEsqTipoPreDefinido := “caracter” 
-             senao tipoLadoEsqTipoPreDefinido := TipoElementos do vetor
+             senão se TipoVarIndexada = CADEIA então tipoLadoEsqTipoPreDefinido := “caracter” 
+             senao tipoLadoEsqTipoPreDefinido := TipoElementos do VETOR
              */
             case 136:
                 this.simboloAux = tabSimbolos.getSimbolo(pilhaPosicaoID.pop());
                 this.variavelAux = (Variavel) this.simboloAux;
                 this.tipoExpressaoTipoPreDefinido = this.pilhaTipoExpressaoTipoPreDefinido.pop();
-                if (this.tipoExpressaoTipoPreDefinido != TipoPreDefinidoEnum.INTEIRO) {
+                if (this.tipoExpressaoTipoPreDefinido != TipoEnum.INTEIRO) {
                     throw new SemanticError("Índice deveria ser inteiro.", token.getPosition());
                 } else {
-                    TipoPreDefinidoEnum tipoVarIndexada = this.pilhaTipoVariavelIndexadaTipoPreDefinido.pop();
-                    if (tipoVarIndexada == TipoPreDefinidoEnum.CADEIA) {
-                        this.tipoLadoEsqTipoPreDefinido = TipoPreDefinidoEnum.CADEIA;
+                    TipoEnum tipoVarIndexada = this.pilhaTipoVariavelIndexadaTipoPreDefinido.pop();
+                    if (tipoVarIndexada == TipoEnum.CADEIA) {
+                        this.tipoLadoEsqTipoPreDefinido = TipoEnum.CADEIA;
                     } else {
                         this.tipoLadoEsqTipoPreDefinido = this.variavelAux.getTipoDeVariavel().getTipoPreDefinidoEnum();
                     }
@@ -620,7 +602,7 @@ public class Semantico implements Constants {
                         throw new SemanticError("Esperava-se método sem tipo.", token.getPosition());
                     }
                     this.pilhaValidarParametros.push(metodo.getPilhaParametro());
-                    this.pilhaExpressao.push(ExpressaoEnum.PAR_ATUAL);
+                    this.pilhaExpressao.push(ContextoExpressaoEnum.PAR_ATUAL);
                 }
                 break;
 
@@ -629,7 +611,7 @@ public class Semantico implements Constants {
              */
             case 138:
                 this.pilhaNPA.push(0);
-                this.pilhaExpressao.push(ExpressaoEnum.PAR_ATUAL);
+                this.pilhaExpressao.push(ContextoExpressaoEnum.PAR_ATUAL);
                 break;
 
             /*
@@ -679,18 +661,18 @@ public class Semantico implements Constants {
              senão (* G. Código para impressão *)                 
              */
             case 141:
-                if (this.pilhaExpressao.peek() == ExpressaoEnum.PAR_ATUAL) {
-                   
+                if (this.pilhaExpressao.peek() == ContextoExpressaoEnum.PAR_ATUAL) {
+
                     this.NPA = this.pilhaNPA.pop();
                     if (!this.pilhaValidarParametros.peek().isEmpty()) {
-                        
+
                         this.tipoExprAux = this.pilhaTipoExpressaoTipoPreDefinido.pop();
                         this.parametroAux = this.pilhaValidarParametros.peek().pop();
                         PassagemValOuRefEnum eRef = this.pilhaERef.pop();
 
                         if (this.tipoExprAux != this.parametroAux.getTipoPreDefinidoEnum()) {
-                            if (!(this.parametroAux.getTipoPreDefinidoEnum() == TipoPreDefinidoEnum.REAL && this.tipoExprAux == TipoPreDefinidoEnum.INTEIRO)
-                                    && !(this.parametroAux.getTipoPreDefinidoEnum() == TipoPreDefinidoEnum.CADEIA && this.tipoExprAux == TipoPreDefinidoEnum.CARACTER)) {
+                            if (!(this.parametroAux.getTipoPreDefinidoEnum() == TipoEnum.REAL && this.tipoExprAux == TipoEnum.INTEIRO)
+                                    && !(this.parametroAux.getTipoPreDefinidoEnum() == TipoEnum.CADEIA && this.tipoExprAux == TipoEnum.CARACTER)) {
 
                                 throw new SemanticError("Parametro formal e atual não correspondem.", token.getPosition());
                             }
@@ -705,9 +687,9 @@ public class Semantico implements Constants {
                     NPA++;
                     this.pilhaNPA.push(NPA);
                 }
-                if (this.pilhaExpressao.peek() == ExpressaoEnum.IMPRESSAO) {
+                if (this.pilhaExpressao.peek() == ContextoExpressaoEnum.IMPRESSAO) {
                     this.tipoExprAux = this.pilhaTipoExpressaoTipoPreDefinido.pop();
-                    if (this.tipoExprAux == TipoPreDefinidoEnum.BOOLEANO) {
+                    if (this.tipoExprAux == TipoEnum.BOOLEANO) {
                         throw new SemanticError("Tipo inválido para impressão.", token.getPosition());
                     }
                 }
@@ -726,21 +708,21 @@ public class Semantico implements Constants {
              */
             case 143:
                 this.tipoExprAux = this.pilhaTipoExpressaoTipoPreDefinido.pop();
-                TipoPreDefinidoEnum tipoExpSimples = this.pilhaTipoExpressaoSimplesTipoPreDefinido.pop();
-                        
+                TipoEnum tipoExpSimples = this.pilhaTipoExpressaoSimplesTipoPreDefinido.pop();
+
                 if (this.tipoExprAux != tipoExpSimples) {
-                    if ((this.tipoExprAux == TipoPreDefinidoEnum.INTEIRO && tipoExpSimples == TipoPreDefinidoEnum.REAL)
-                            || (this.tipoExprAux == TipoPreDefinidoEnum.REAL && tipoExpSimples == TipoPreDefinidoEnum.INTEIRO)
-                            || (this.tipoExprAux == TipoPreDefinidoEnum.CADEIA && tipoExpSimples == TipoPreDefinidoEnum.CARACTER)
-                            || (this.tipoExprAux == TipoPreDefinidoEnum.CARACTER && tipoExpSimples == TipoPreDefinidoEnum.CADEIA)) {
-                        this.pilhaTipoExpressaoTipoPreDefinido.push(TipoPreDefinidoEnum.BOOLEANO);
+                    if ((this.tipoExprAux == TipoEnum.INTEIRO && tipoExpSimples == TipoEnum.REAL)
+                            || (this.tipoExprAux == TipoEnum.REAL && tipoExpSimples == TipoEnum.INTEIRO)
+                            || (this.tipoExprAux == TipoEnum.CADEIA && tipoExpSimples == TipoEnum.CARACTER)
+                            || (this.tipoExprAux == TipoEnum.CARACTER && tipoExpSimples == TipoEnum.CADEIA)) {
+                        this.pilhaTipoExpressaoTipoPreDefinido.push(TipoEnum.BOOLEANO);
                     } else {
                         throw new SemanticError("Operandos incompatíveis.", token.getPosition());
                     }
                 } else {
-                    this.pilhaTipoExpressaoTipoPreDefinido.push(TipoPreDefinidoEnum.BOOLEANO);
+                    this.pilhaTipoExpressaoTipoPreDefinido.push(TipoEnum.BOOLEANO);
                 }
-                if (!this.pilhaExpressao.isEmpty() && this.pilhaExpressao.peek() == ExpressaoEnum.PAR_ATUAL) {
+                if (!this.pilhaExpressao.isEmpty() && this.pilhaExpressao.peek() == ContextoExpressaoEnum.PAR_ATUAL) {
                     this.pilhaERef.pop();
                     this.pilhaERef.push(PassagemValOuRefEnum.VALOR);
                 }
@@ -750,27 +732,27 @@ public class Semantico implements Constants {
              #144 a #149 – Guarda Operador Relacional para futura Geração de Código
              */
             case 144:
-                this.pilhaOperadorRelacional.push(OperadorRelEnum.OPERADORIGUAL);
+                this.pilhaOperadorRelacional.push(OperadorRelEnum.OPERADOR_IGUAL);
                 break;
 
             case 145:
-                this.pilhaOperadorRelacional.push(OperadorRelEnum.OPERADORMENOR);
+                this.pilhaOperadorRelacional.push(OperadorRelEnum.OPERADOR_MENOR);
                 break;
 
             case 146:
-                this.pilhaOperadorRelacional.push(OperadorRelEnum.OPERADORMAIOR);
+                this.pilhaOperadorRelacional.push(OperadorRelEnum.OPERADOR_MAIOR);
                 break;
 
             case 147:
-                this.pilhaOperadorRelacional.push(OperadorRelEnum.OPERADORMAIORIGUAL);
+                this.pilhaOperadorRelacional.push(OperadorRelEnum.OPERADOR_MAIOR_IGUAL);
                 break;
 
             case 148:
-                this.pilhaOperadorRelacional.push(OperadorRelEnum.OPERADORMENORIGUAL);
+                this.pilhaOperadorRelacional.push(OperadorRelEnum.OPERADOR_MENOR_IGUAL);
                 break;
 
             case 149:
-                this.pilhaOperadorRelacional.push(OperadorRelEnum.OPERADORDIFERENTE);
+                this.pilhaOperadorRelacional.push(OperadorRelEnum.OPERADOR_DIFERENTE);
                 break;
 
             /*
@@ -785,18 +767,18 @@ public class Semantico implements Constants {
              */
             case 151:
                 OperadorAddEnum operadorAddAux = this.pilhaOperadorAdd.peek();
-                TipoPreDefinidoEnum tipo = this.pilhaTipoExpressaoSimplesTipoPreDefinido.peek();
+                TipoEnum tipo = this.pilhaTipoExpressaoSimplesTipoPreDefinido.peek();
 
-                if ((operadorAddAux == OperadorAddEnum.OPERADORADICAO || operadorAddAux == OperadorAddEnum.OPERADORSUBTRACAO)
-                        && (tipo != TipoPreDefinidoEnum.INTEIRO && tipo != TipoPreDefinidoEnum.REAL)) {
+                if ((operadorAddAux == OperadorAddEnum.OPERADOR_ADICAO || operadorAddAux == OperadorAddEnum.OPERADOR_SUBTRACAO)
+                        && (tipo != TipoEnum.INTEIRO && tipo != TipoEnum.REAL)) {
                     throw new SemanticError("Operador e operando incompatíveis.", token.getPosition());
                 }
 
-                if (operadorAddAux == OperadorAddEnum.OPERADOROU && tipo != TipoPreDefinidoEnum.BOOLEANO) {
+                if (operadorAddAux == OperadorAddEnum.OPERADOR_OU && tipo != TipoEnum.BOOLEANO) {
                     throw new SemanticError("Operador e operando incompatíveis.", token.getPosition());
                 }
 
-                if (!this.pilhaExpressao.isEmpty() && this.pilhaExpressao.peek() == ExpressaoEnum.PAR_ATUAL) {
+                if (!this.pilhaExpressao.isEmpty() && this.pilhaExpressao.peek() == ContextoExpressaoEnum.PAR_ATUAL) {
                     this.pilhaERef.pop();
                     this.pilhaERef.push(PassagemValOuRefEnum.VALOR);
                 }
@@ -807,31 +789,31 @@ public class Semantico implements Constants {
              senão TipoExpSimples := tipo do resultado da operação(* Gera Código de acordo com oppad *)
              */
             case 152:
-                TipoPreDefinidoEnum tipoTermo = this.pilhaTipoTermoTipoPreDefinido.pop();
-                TipoPreDefinidoEnum tipoExprSimp = this.pilhaTipoExpressaoSimplesTipoPreDefinido.pop();
+                TipoEnum tipoTermo = this.pilhaTipoTermoTipoPreDefinido.pop();
+                TipoEnum tipoExprSimp = this.pilhaTipoExpressaoSimplesTipoPreDefinido.pop();
                 OperadorAddEnum op = this.pilhaOperadorAdd.pop();
 
                 //Se for Adição ou Subtração:
-                if (op == OperadorAddEnum.OPERADORADICAO || op == OperadorAddEnum.OPERADORSUBTRACAO) {
-                    if ((tipoExprSimp != TipoPreDefinidoEnum.INTEIRO && tipoExprSimp != TipoPreDefinidoEnum.REAL)
-                            || (tipoTermo != TipoPreDefinidoEnum.INTEIRO && tipoTermo != TipoPreDefinidoEnum.REAL)) {
+                if (op == OperadorAddEnum.OPERADOR_ADICAO || op == OperadorAddEnum.OPERADOR_SUBTRACAO) {
+                    if ((tipoExprSimp != TipoEnum.INTEIRO && tipoExprSimp != TipoEnum.REAL)
+                            || (tipoTermo != TipoEnum.INTEIRO && tipoTermo != TipoEnum.REAL)) {
                         throw new SemanticError("Operandos incompatíveis.", token.getPosition());
                     } else {
                         //Se um dos dois forem Real, o resultado é Real
-                        if (tipoExprSimp == TipoPreDefinidoEnum.REAL || tipoTermo == TipoPreDefinidoEnum.REAL) {
-                            this.pilhaTipoExpressaoSimplesTipoPreDefinido.push(TipoPreDefinidoEnum.REAL);
+                        if (tipoExprSimp == TipoEnum.REAL || tipoTermo == TipoEnum.REAL) {
+                            this.pilhaTipoExpressaoSimplesTipoPreDefinido.push(TipoEnum.REAL);
                         } else {
-                            this.pilhaTipoExpressaoSimplesTipoPreDefinido.push(TipoPreDefinidoEnum.INTEIRO);
+                            this.pilhaTipoExpressaoSimplesTipoPreDefinido.push(TipoEnum.INTEIRO);
                         }
                     }
                 }
 
                 //Se for operação lógica
-                if (op == OperadorAddEnum.OPERADOROU) {
-                    if (tipoTermo != TipoPreDefinidoEnum.BOOLEANO) {
+                if (op == OperadorAddEnum.OPERADOR_OU) {
+                    if (tipoTermo != TipoEnum.BOOLEANO) {
                         throw new SemanticError("Operandos incompatíveis.", token.getPosition());
                     } else {
-                        this.pilhaTipoExpressaoSimplesTipoPreDefinido.push(TipoPreDefinidoEnum.BOOLEANO);
+                        this.pilhaTipoExpressaoSimplesTipoPreDefinido.push(TipoEnum.BOOLEANO);
                     }
                 }
                 break;
@@ -840,15 +822,15 @@ public class Semantico implements Constants {
              #153 a #155 – guarda operador para futura G. código
              */
             case 153:
-                this.pilhaOperadorAdd.push(OperadorAddEnum.OPERADORADICAO);
+                this.pilhaOperadorAdd.push(OperadorAddEnum.OPERADOR_ADICAO);
                 break;
 
             case 154:
-                this.pilhaOperadorAdd.push(OperadorAddEnum.OPERADORSUBTRACAO);
+                this.pilhaOperadorAdd.push(OperadorAddEnum.OPERADOR_SUBTRACAO);
                 break;
 
             case 155:
-                this.pilhaOperadorAdd.push(OperadorAddEnum.OPERADOROU);
+                this.pilhaOperadorAdd.push(OperadorAddEnum.OPERADOR_OU);
                 break;
 
             /*
@@ -865,19 +847,19 @@ public class Semantico implements Constants {
                 OperadorMultEnum operadorMult = this.pilhaOperadorMult.peek();
                 this.tipoTermoAux = this.pilhaTipoTermoTipoPreDefinido.peek();
 
-                if ((operadorMult == OperadorMultEnum.OPERADORMULTIPLICACAO || operadorMult == OperadorMultEnum.OPERADORDIVISAO)
-                        && (this.tipoTermoAux != TipoPreDefinidoEnum.INTEIRO && this.tipoTermoAux != TipoPreDefinidoEnum.REAL)) {
+                if ((operadorMult == OperadorMultEnum.OPERADOR_MULTIPLICACAO || operadorMult == OperadorMultEnum.OPERADOR_DIVISAO)
+                        && (this.tipoTermoAux != TipoEnum.INTEIRO && this.tipoTermoAux != TipoEnum.REAL)) {
 
                     throw new SemanticError("Operador e operando incompatíveis.", token.getPosition());
                 }
-                if (operadorMult == OperadorMultEnum.OPERADORDIV && this.tipoTermoAux != TipoPreDefinidoEnum.INTEIRO) {
+                if (operadorMult == OperadorMultEnum.OPERADOR_DIV && this.tipoTermoAux != TipoEnum.INTEIRO) {
                     throw new SemanticError("Operador e operando incompatíveis.", token.getPosition());
                 }
-                if (operadorMult == OperadorMultEnum.OPERADORE && this.tipoTermoAux != TipoPreDefinidoEnum.BOOLEANO) {
+                if (operadorMult == OperadorMultEnum.OPERADOR_E && this.tipoTermoAux != TipoEnum.BOOLEANO) {
                     throw new SemanticError("Operador e operando incompatíveis.", token.getPosition());
                 }
 
-                if (!this.pilhaExpressao.isEmpty() && this.pilhaExpressao.peek() == ExpressaoEnum.PAR_ATUAL) {
+                if (!this.pilhaExpressao.isEmpty() && this.pilhaExpressao.peek() == ContextoExpressaoEnum.PAR_ATUAL) {
                     this.pilhaERef.pop();
                     this.pilhaERef.push(PassagemValOuRefEnum.VALOR);
                 }
@@ -891,59 +873,53 @@ public class Semantico implements Constants {
                 this.tipoTermoAux = this.pilhaTipoTermoTipoPreDefinido.pop();
                 this.tipoFatorAux = this.pilhaTipoFatorTipoPreDefinido.pop();
                 OperadorMultEnum opMult = this.pilhaOperadorMult.pop();
-                if (opMult == OperadorMultEnum.OPERADORMULTIPLICACAO || opMult == OperadorMultEnum.OPERADORDIVISAO) {
+                if (opMult == OperadorMultEnum.OPERADOR_MULTIPLICACAO || opMult == OperadorMultEnum.OPERADOR_DIVISAO) {
 
-                    if ((this.tipoTermoAux != TipoPreDefinidoEnum.INTEIRO && this.tipoTermoAux != TipoPreDefinidoEnum.REAL)
-                            || (this.tipoFatorAux != TipoPreDefinidoEnum.INTEIRO && this.tipoFatorAux != TipoPreDefinidoEnum.REAL)) {
+                    if ((this.tipoTermoAux != TipoEnum.INTEIRO && this.tipoTermoAux != TipoEnum.REAL)
+                            || (this.tipoFatorAux != TipoEnum.INTEIRO && this.tipoFatorAux != TipoEnum.REAL)) {
                         throw new SemanticError("Operandos incompatíveis.", token.getPosition());
                     } else {
-                        if ((this.tipoTermoAux == TipoPreDefinidoEnum.REAL || this.tipoFatorAux == TipoPreDefinidoEnum.REAL) || opMult == OperadorMultEnum.OPERADORDIVISAO) {
-                            this.pilhaTipoTermoTipoPreDefinido.push(TipoPreDefinidoEnum.REAL);
+                        if ((this.tipoTermoAux == TipoEnum.REAL || this.tipoFatorAux == TipoEnum.REAL) || opMult == OperadorMultEnum.OPERADOR_DIVISAO) {
+                            this.pilhaTipoTermoTipoPreDefinido.push(TipoEnum.REAL);
                         } else {
-                            this.pilhaTipoTermoTipoPreDefinido.push(TipoPreDefinidoEnum.INTEIRO);
+                            this.pilhaTipoTermoTipoPreDefinido.push(TipoEnum.INTEIRO);
                         }
                         ///////////////////// GERA CÓDIGO DE ACORDO COM OPMULT ///////////////////////// 
                     }
                 }
-                if(opMult == OperadorMultEnum.OPERADORDIV)
-         {
-             if(this.tipoTermoAux != TipoPreDefinidoEnum.INTEIRO || this.tipoFatorAux != TipoPreDefinidoEnum.INTEIRO)
-             {
-                 throw new SemanticError("Operandos incompatíveis", token.getPosition());                 
-             }else
-             {
-                 this.pilhaTipoTermoTipoPreDefinido.push(TipoPreDefinidoEnum.INTEIRO);
-             }
-         }
-         if(opMult == OperadorMultEnum.OPERADORE)
-         {
-             if(this.tipoTermoAux != TipoPreDefinidoEnum.BOOLEANO || this.tipoFatorAux != TipoPreDefinidoEnum.BOOLEANO)
-             {
-                 throw new SemanticError("Operandos incompatíveis", token.getPosition());                  
-             }else
-             {
-                 this.pilhaTipoTermoTipoPreDefinido.push(TipoPreDefinidoEnum.BOOLEANO);                 
-             }
-         }
+                if (opMult == OperadorMultEnum.OPERADOR_DIV) {
+                    if (this.tipoTermoAux != TipoEnum.INTEIRO || this.tipoFatorAux != TipoEnum.INTEIRO) {
+                        throw new SemanticError("Operandos incompatíveis", token.getPosition());
+                    } else {
+                        this.pilhaTipoTermoTipoPreDefinido.push(TipoEnum.INTEIRO);
+                    }
+                }
+                if (opMult == OperadorMultEnum.OPERADOR_E) {
+                    if (this.tipoTermoAux != TipoEnum.BOOLEANO || this.tipoFatorAux != TipoEnum.BOOLEANO) {
+                        throw new SemanticError("Operandos incompatíveis", token.getPosition());
+                    } else {
+                        this.pilhaTipoTermoTipoPreDefinido.push(TipoEnum.BOOLEANO);
+                    }
+                }
                 break;
 
             /*
              #159 a #162 – guarda operador para futura G. código 
              */
             case 159:
-                this.pilhaOperadorMult.push(OperadorMultEnum.OPERADORMULTIPLICACAO);
+                this.pilhaOperadorMult.push(OperadorMultEnum.OPERADOR_MULTIPLICACAO);
                 break;
 
             case 160:
-                this.pilhaOperadorMult.push(OperadorMultEnum.OPERADORDIVISAO);
+                this.pilhaOperadorMult.push(OperadorMultEnum.OPERADOR_DIVISAO);
                 break;
 
             case 161:
-                this.pilhaOperadorMult.push(OperadorMultEnum.OPERADORE);
+                this.pilhaOperadorMult.push(OperadorMultEnum.OPERADOR_E);
                 break;
 
             case 162:
-                this.pilhaOperadorMult.push(OperadorMultEnum.OPERADORDIV);
+                this.pilhaOperadorMult.push(OperadorMultEnum.OPERADOR_DIV);
                 break;
 
             /*
@@ -951,14 +927,12 @@ public class Semantico implements Constants {
              Senão OpNega := true 
              */
             case 163:
-                if (!this.pilhaOperadorNega.isEmpty()) {
-                    if (this.pilhaOperadorNega.peek()) {
-                        throw new SemanticError("Operador 'não' repetido indevidamente.", token.getPosition());
-                    } else {
-                        this.pilhaOperadorNega.push(true);
-                        if (!this.pilhaExpressao.isEmpty() && this.pilhaExpressao.peek() == ExpressaoEnum.PAR_ATUAL) {
-                            this.pilhaERef.push(PassagemValOuRefEnum.VALOR);
-                        }
+                if (!this.pilhaOperadorNega.isEmpty() && this.pilhaOperadorNega.peek()) {
+                    throw new SemanticError("Operador 'não' repetido indevidamente.", token.getPosition());
+                } else {
+                    this.pilhaOperadorNega.push(true);
+                    if (!this.pilhaExpressao.isEmpty() && this.pilhaExpressao.peek() == ContextoExpressaoEnum.PAR_ATUAL) {
+                        this.pilhaERef.push(PassagemValOuRefEnum.VALOR);
                     }
                 }
                 break;
@@ -969,12 +943,10 @@ public class Semantico implements Constants {
              */
             case 164:
                 this.tipoFatorAux = this.pilhaTipoFatorTipoPreDefinido.peek();
-                if (this.tipoFatorAux != TipoPreDefinidoEnum.BOOLEANO) {
+                if (this.tipoFatorAux != TipoEnum.BOOLEANO) {
                     throw new SemanticError("Operador 'não' exige operando booleano.", token.getPosition());
-                } else {
-                    this.pilhaOperadorNega.pop();
-                    this.pilhaOperadorNega.push(false);
                 }
+                this.pilhaOperadorNega.pop();
                 break;
 
             /*
@@ -986,7 +958,7 @@ public class Semantico implements Constants {
                     throw new SemanticError("Operador 'unário' repetido.", token.getPosition());
                 } else {
                     this.pilhaOperadorUnario.push(true);
-                    if (!this.pilhaExpressao.isEmpty() && this.pilhaExpressao.peek() == ExpressaoEnum.PAR_ATUAL) {
+                    if (!this.pilhaExpressao.isEmpty() && this.pilhaExpressao.peek() == ContextoExpressaoEnum.PAR_ATUAL) {
                         this.pilhaERef.push(PassagemValOuRefEnum.VALOR);
                     }
                 }
@@ -998,7 +970,7 @@ public class Semantico implements Constants {
              */
             case 166:
                 this.tipoFatorAux = this.pilhaTipoFatorTipoPreDefinido.peek();
-                if (this.tipoFatorAux != TipoPreDefinidoEnum.INTEIRO && this.tipoFatorAux != TipoPreDefinidoEnum.REAL) {
+                if (this.tipoFatorAux != TipoEnum.INTEIRO && this.tipoFatorAux != TipoEnum.REAL) {
                     throw new SemanticError("Operador unário exige operando numeral.", token.getPosition());
                 } else {
                     this.pilhaOperadorUnario.pop();
@@ -1020,15 +992,13 @@ public class Semantico implements Constants {
              */
             case 168:
                 this.pilhaTipoFatorTipoPreDefinido.push(this.pilhaTipoExpressaoTipoPreDefinido.pop());
-                /*   this.pilhaOperadorNega.pop();
-                 this.pilhaOperadorUnario.pop();
-                 if (!this.pilhaExpressao.isEmpty() && this.pilhaExpressao.peek() == ExpressaoEnum.PAR_ATUAL) {
-                 if ((!this.pilhaOperadorNega.isEmpty() && this.pilhaOperadorNega.peek()) || (!this.pilhaOperadorUnario.isEmpty() && this.pilhaOperadorUnario.peek())) {
-                 this.pilhaERef.pop();
-                 this.pilhaERef.push(PassagemValOuRefEnum.VALOR);
-                 }
+                this.pilhaOperadorNega.pop();
+                this.pilhaOperadorUnario.pop();
+                if (!this.pilhaExpressao.isEmpty() && this.pilhaExpressao.peek() == ContextoExpressaoEnum.PAR_ATUAL && ((!this.pilhaOperadorNega.isEmpty() && this.pilhaOperadorNega.peek()) || (!this.pilhaOperadorUnario.isEmpty() && this.pilhaOperadorUnario.peek()))) {
+                    this.pilhaERef.pop();
+                    this.pilhaERef.push(PassagemValOuRefEnum.VALOR);
 
-                 }*/
+                }
                 break;
 
             /*
@@ -1043,12 +1013,12 @@ public class Semantico implements Constants {
              */
             case 170:
                 this.pilhaTipoFatorTipoPreDefinido.push(this.tipoConstanteTipoPreDefinido);
-                /*
-                 if (!this.pilhaExpressao.isEmpty() && this.pilhaExpressao.peek() == ExpressaoEnum.PAR_ATUAL) {
-                 if (!(!this.pilhaOperadorNega.isEmpty() && this.pilhaOperadorNega.peek()) && !(!this.pilhaOperadorUnario.isEmpty() && this.pilhaOperadorUnario.peek())) {
-                 this.pilhaERef.push(PassagemValOuRefEnum.VALOR);
-                 }
-                 }*/
+
+                if (!this.pilhaExpressao.isEmpty() && this.pilhaExpressao.peek() == ContextoExpressaoEnum.PAR_ATUAL) {
+                    if (!(!this.pilhaOperadorNega.isEmpty() && this.pilhaOperadorNega.peek()) && !(!this.pilhaOperadorUnario.isEmpty() && this.pilhaOperadorUnario.peek())) {
+                        this.pilhaERef.push(PassagemValOuRefEnum.VALOR);
+                    }
+                }
                 break;
 
             /*
@@ -1064,13 +1034,12 @@ public class Semantico implements Constants {
                     this.metodoAux = (Metodo) this.simboloAux;
                     if (this.metodoAux.isRetornoNull()) {
                         throw new SemanticError("Esperava-se método com tipo.", token.getPosition());
-                    } else {
-                        this.pilhaNPA.push(0);
-                        this.pilhaExpressao.push(ExpressaoEnum.PAR_ATUAL);
                     }
                     this.pilhaValidarParametros.push(this.metodoAux.getPilhaParametro());
                 }
-                this.pilhaExpressao.push(ExpressaoEnum.PAR_ATUAL);
+
+                this.pilhaNPA.push(0);
+                this.pilhaExpressao.push(ContextoExpressaoEnum.PAR_ATUAL);
                 break;
 
             /*
@@ -1087,44 +1056,43 @@ public class Semantico implements Constants {
                 } else {
                     throw new SemanticError("Erro na quantidade de parâmetros.", token.getPosition());
                 }
-                /*  this.pilhaExpressao.push(ExpressaoEnum.PAR_ATUAL);
+                this.pilhaExpressao.push(ContextoExpressaoEnum.PAR_ATUAL);
 
-                 if (!this.pilhaExpressao.isEmpty() && this.pilhaExpressao.peek() == ExpressaoEnum.PAR_ATUAL) {
-                 if (!(!this.pilhaOperadorNega.isEmpty() && this.pilhaOperadorNega.peek()) && !(!this.pilhaOperadorUnario.isEmpty() && this.pilhaOperadorUnario.peek())) {
-                 this.pilhaERef.push(PassagemValOuRefEnum.VALOR);
-                 }
-                 }
-
-                 this.pilhaValidarParametros.pop();*/
+                if (!this.pilhaExpressao.isEmpty() && this.pilhaExpressao.peek() == ContextoExpressaoEnum.PAR_ATUAL) {
+                    if (!(!this.pilhaOperadorNega.isEmpty() && this.pilhaOperadorNega.peek()) && !(!this.pilhaOperadorUnario.isEmpty() && this.pilhaOperadorUnario.peek())) {
+                        this.pilhaERef.push(PassagemValOuRefEnum.VALOR);
+                    }
+                }
+                this.pilhaValidarParametros.pop();
                 break;
 
             /*
              #173 – se TipoExpr <> “inteiro” ntão ERRO(“índice deveria ser inteiro”) 
-             senão se TipoVarIndexada = cadeia então tipoVarTipoPreDefinido := “caracter” 
-             senao tipoVarTipoPreDefinido := TipoElementos do vetor
+             senão se TipoVarIndexada = CADEIA então tipoVarTipoPreDefinido := “caracter” 
+             senao tipoVarTipoPreDefinido := TipoElementos do VETOR
              */
             case 173:
-                if (this.pilhaTipoExpressaoTipoPreDefinido.pop() != TipoPreDefinidoEnum.INTEIRO) {
+                if (this.pilhaTipoExpressaoTipoPreDefinido.pop() != TipoEnum.INTEIRO) {
                     throw new SemanticError("Índice deveria ser inteiro.", token.getPosition());
                 } else {
-                    if (this.pilhaTipoVariavelIndexadaTipoPreDefinido.pop() == TipoPreDefinidoEnum.CADEIA) {
-                        this.tipoVarTipoPreDefinido = TipoPreDefinidoEnum.CARACTER;
+                    if (this.pilhaTipoVariavelIndexadaTipoPreDefinido.pop() == TipoEnum.CADEIA) {
+                        this.tipoVarTipoPreDefinido = TipoEnum.CARACTER;
                         this.pilhaPosicaoID.pop();
                     } else {
                         this.variavelAux = (Variavel) this.tabSimbolos.getSimbolo(this.pilhaPosicaoID.pop());
                         this.tipoVarTipoPreDefinido = this.variavelAux.getTipoDeVariavel().getTipoPreDefinidoEnum();
                     }
                 }
-                /*
-                 if (!this.pilhaExpressao.isEmpty() && this.pilhaExpressao.peek() == ExpressaoEnum.PAR_ATUAL) {
-                 if (!(!this.pilhaOperadorNega.isEmpty() && this.pilhaOperadorNega.peek()) && !(!this.pilhaOperadorUnario.isEmpty() && this.pilhaOperadorUnario.peek())) {
-                 this.pilhaERef.push(PassagemValOuRefEnum.REFERENCIA);
-                 }
-                 }*/
+
+                if (!this.pilhaExpressao.isEmpty() && this.pilhaExpressao.peek() == ContextoExpressaoEnum.PAR_ATUAL) {
+                    if (!(!this.pilhaOperadorNega.isEmpty() && this.pilhaOperadorNega.peek()) && !(!this.pilhaOperadorUnario.isEmpty() && this.pilhaOperadorUnario.peek())) {
+                        this.pilhaERef.push(PassagemValOuRefEnum.REFERENCIA);
+                    }
+                }
                 break;
 
             /*
-             #174 - se categoria de id = “variável” ou “Parâmetro” então se tipo de id = “vetor” então ERRO(“vetor deve ser indexado”)
+             #174 - se categoria de id = “variável” ou “Parâmetro” então se tipo de id = “VETOR” então ERRO(“VETOR deve ser indexado”)
              senão tipoVarTipoPreDefinido := Tipo de id 
              senão se categoria de id = método então se tipo método = “nulo” então ERRO(“Esperava-se método com tipo”)
              senão se NPF <> 0 então ERRO(“Erro na quant. de parâmetros”) 
@@ -1137,7 +1105,7 @@ public class Semantico implements Constants {
                 if (this.simboloAux.getCategoria() == CategoriaIDEnum.PARAMETRO || this.simboloAux.getCategoria() == CategoriaIDEnum.VARIAVEL) {
                     if (this.simboloAux.getCategoria() == CategoriaIDEnum.VARIAVEL) {
                         this.variavelAux = (Variavel) this.simboloAux;
-                        if (this.variavelAux.getTipoDeVariavel().getTipoDeVariavelEnum() == TipoDeVariavelEnum.VETOR) {
+                        if (this.variavelAux.getTipoDeVariavel().getTipoDeVariavelEnum() == SubCategoriaVariavelEnum.VETOR) {
                             throw new SemanticError("Vetor deve ser indexado.", token.getPosition());
                         } else {
                             tipoVarTipoPreDefinido = Converte.getTipoPreDefinidoEnum(this.variavelAux.getTipoDeVariavel().getTipoDeVariavelEnum());
@@ -1147,7 +1115,7 @@ public class Semantico implements Constants {
                         tipoVarTipoPreDefinido = this.parametroAux.getTipoPreDefinidoEnum();
                     }
 
-                    if (!this.pilhaExpressao.isEmpty() && this.pilhaExpressao.peek() == ExpressaoEnum.PAR_ATUAL) {
+                    if (!this.pilhaExpressao.isEmpty() && this.pilhaExpressao.peek() == ContextoExpressaoEnum.PAR_ATUAL) {
                         if (!(!this.pilhaOperadorNega.isEmpty() && this.pilhaOperadorNega.peek()) && !(!this.pilhaOperadorUnario.isEmpty() && this.pilhaOperadorUnario.peek())) {
                             this.pilhaERef.push(PassagemValOuRefEnum.REFERENCIA);
                         }
@@ -1165,7 +1133,7 @@ public class Semantico implements Constants {
                                 tipoVarTipoPreDefinido = this.metodoAux.getResultado();
                             }
 
-                            if (!this.pilhaExpressao.isEmpty() && this.pilhaExpressao.peek() == ExpressaoEnum.PAR_ATUAL) {
+                            if (!this.pilhaExpressao.isEmpty() && this.pilhaExpressao.peek() == ContextoExpressaoEnum.PAR_ATUAL) {
                                 if (!(!this.pilhaOperadorNega.isEmpty() && this.pilhaOperadorNega.peek()) && !(!this.pilhaOperadorUnario.isEmpty() && this.pilhaOperadorUnario.peek())) {
                                     this.pilhaERef.push(PassagemValOuRefEnum.VALOR);
                                 }
@@ -1176,7 +1144,7 @@ public class Semantico implements Constants {
                         if (this.simboloAux.getCategoria() == CategoriaIDEnum.CONSTANTE) {
                             this.constanteAux = (Constante) this.simboloAux;
                             tipoVarTipoPreDefinido = this.constanteAux.getTipoPreDefinidoEnum();
-                            if (!this.pilhaExpressao.isEmpty() && this.pilhaExpressao.peek() == ExpressaoEnum.PAR_ATUAL) {
+                            if (!this.pilhaExpressao.isEmpty() && this.pilhaExpressao.peek() == ContextoExpressaoEnum.PAR_ATUAL) {
 
                                 if (!(!this.pilhaOperadorNega.isEmpty() && this.pilhaOperadorNega.peek()) && !(!this.pilhaOperadorUnario.isEmpty() && this.pilhaOperadorUnario.peek())) {
                                     this.pilhaERef.push(PassagemValOuRefEnum.VALOR);
@@ -1214,47 +1182,33 @@ public class Semantico implements Constants {
              valConst:= valor da constante
              */
             case 176:
-                this.tipoConstanteTipoPreDefinido = TipoPreDefinidoEnum.INTEIRO;
+                this.tipoConstanteTipoPreDefinido = TipoEnum.INTEIRO;
                 this.valConst = token.getLexeme();
                 break;
 
             case 177:
-                this.tipoConstanteTipoPreDefinido = TipoPreDefinidoEnum.REAL;
+                this.tipoConstanteTipoPreDefinido = TipoEnum.REAL;
                 this.valConst = token.getLexeme();
                 break;
 
             case 178:
-                this.tipoConstanteTipoPreDefinido = TipoPreDefinidoEnum.BOOLEANO;
+                this.tipoConstanteTipoPreDefinido = TipoEnum.BOOLEANO;
                 this.valConst = token.getLexeme();
                 break;
 
             case 179:
-                this.tipoConstanteTipoPreDefinido = TipoPreDefinidoEnum.BOOLEANO;
+                this.tipoConstanteTipoPreDefinido = TipoEnum.BOOLEANO;
                 this.valConst = token.getLexeme();
                 break;
 
             case 180:
                 if (token.getLexeme().length() - 2 == 1) {
-                    // OU 
-                    //if (token.getLexeme().length() == 1) {
-                    //TESTAR O CERTO!!!
-                    this.tipoConstanteTipoPreDefinido = TipoPreDefinidoEnum.CARACTER;
+                    this.tipoConstanteTipoPreDefinido = TipoEnum.CARACTER;
                 } else {
-                    this.tipoConstanteTipoPreDefinido = TipoPreDefinidoEnum.CADEIA;
+                    this.tipoConstanteTipoPreDefinido = TipoEnum.CADEIA;
                 }
                 this.valConst = token.getLexeme();
                 break;
         }
-        /*public void execAcao101(Token token) {
-       
-         this.tabSimbolos = new TabelaDeSimbolos();
-         this.NA = 0;
-         this.deslocamento.push(0);
-         Simbolo id = new Simbolo(token.getLexeme(), CategoriaIDEnum.PROGRAMA, NA);
-         this.NA++;
-         this.tabSimbolos.addSimbolo(id);
-         }*/
-
     }
-
 }

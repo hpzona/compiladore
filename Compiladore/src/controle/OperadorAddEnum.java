@@ -2,8 +2,6 @@ package controle;
 
 // Classe desenvolvida por Lucas e Willian
 public enum OperadorAddEnum {
-    OPERADORADICAO,
-    OPERADOROU,
-    OPERADORSUBTRACAO
+    OPERADOR_ADICAO,OPERADOR_OU,OPERADOR_SUBTRACAO
             
 }
