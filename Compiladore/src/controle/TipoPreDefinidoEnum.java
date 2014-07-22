@@ -1,7 +1,7 @@
 package controle;
 
 // Classe desenvolvida por Lucas e Willian
-public enum TipoEnum {
+public enum TipoPreDefinidoEnum {
     INTEIRO,REAL,BOOLEANO,CARACTER,CADEIA
 }
 

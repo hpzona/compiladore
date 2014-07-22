@@ -8,7 +8,7 @@ public class Metodo extends Simbolo{
     protected int enderecoDaPrimeiraInstrucao;
     protected int numeroDeParametros;
     protected List<Parametro> listaDeParametros;
-    protected TipoEnum resultadoDoTipo; 
+    protected TipoPreDefinidoEnum resultadoDoTipo; 
     protected boolean retornoNull;
 
     public Metodo() {
@@ -18,14 +18,14 @@ public class Metodo extends Simbolo{
         super(nome, categoria, nivel);
     }
 
-    public Metodo(int endereço1Instrução, int numParametros, List<Parametro> listaDeParametros, TipoEnum resultadoDoTipo) {
+    public Metodo(int endereço1Instrução, int numParametros, List<Parametro> listaDeParametros, TipoPreDefinidoEnum resultadoDoTipo) {
         this.enderecoDaPrimeiraInstrucao = endereço1Instrução;
         this.numeroDeParametros = numParametros;
         this.listaDeParametros = listaDeParametros;
         this.resultadoDoTipo = resultadoDoTipo;
     }
 
-    public Metodo(int endereço1Instrução, int numParametros, List<Parametro> listaDeParametros, TipoEnum resultadoDoTipo, String nome, CategoriaIDEnum categoria, int nivel) {
+    public Metodo(int endereço1Instrução, int numParametros, List<Parametro> listaDeParametros, TipoPreDefinidoEnum resultadoDoTipo, String nome, CategoriaIDEnum categoria, int nivel) {
         super(nome, categoria, nivel);
         this.enderecoDaPrimeiraInstrucao = endereço1Instrução;
         this.numeroDeParametros = numParametros;
@@ -45,7 +45,7 @@ public class Metodo extends Simbolo{
         return numeroDeParametros;
     }
 
-    public TipoEnum getResultado() {
+    public TipoPreDefinidoEnum getResultado() {
         return resultadoDoTipo;
     }
 
@@ -65,7 +65,7 @@ public class Metodo extends Simbolo{
         this.numeroDeParametros = numParametros;
     }
 
-    public void setResultado(TipoEnum resultado) {
+    public void setResultado(TipoPreDefinidoEnum resultado) {
         this.resultadoDoTipo = resultado;
     }
 

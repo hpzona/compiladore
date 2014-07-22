@@ -3,39 +3,39 @@ package controle;
 // Classe desenvolvida por Lucas e Willian
 public class Converte {
 
-    public static SubCategoriaVariavelEnum getTipoDeVariavelEnum(TipoEnum tipoPreDefinidoEnum)
+    public static SubCategoriaPreDefEnum getTipoDeVariavelEnum(TipoPreDefinidoEnum tipoPreDefinidoEnum)
     {
         switch(tipoPreDefinidoEnum)
         {
             case BOOLEANO : 
-                return SubCategoriaVariavelEnum.BOOLEANO;
+                return SubCategoriaPreDefEnum.BOOLEANO;
             case CADEIA   : 
-                return SubCategoriaVariavelEnum.CADEIA;
+                return SubCategoriaPreDefEnum.CADEIA;
             case CARACTER : 
-                return SubCategoriaVariavelEnum.CARACTER;
+                return SubCategoriaPreDefEnum.CARACTER;
             case INTEIRO  : 
-                return SubCategoriaVariavelEnum.INTEIRO;
+                return SubCategoriaPreDefEnum.INTEIRO;
             case REAL : 
-                return SubCategoriaVariavelEnum.REAL;
+                return SubCategoriaPreDefEnum.REAL;
         }
-        return SubCategoriaVariavelEnum.BOOLEANO;   
+        return SubCategoriaPreDefEnum.BOOLEANO;   
     }
     
-    public static TipoEnum getTipoPreDefinidoEnum(SubCategoriaVariavelEnum tipoVariavelDeEnum)
+    public static TipoPreDefinidoEnum getTipoPreDefinidoEnum(SubCategoriaPreDefEnum tipoVariavelDeEnum)
     {
         switch(tipoVariavelDeEnum)
         {
             case BOOLEANO : 
-                return TipoEnum.BOOLEANO;
+                return TipoPreDefinidoEnum.BOOLEANO;
             case CADEIA   : 
-                return TipoEnum.CADEIA;
+                return TipoPreDefinidoEnum.CADEIA;
             case CARACTER : 
-                return TipoEnum.CARACTER;
+                return TipoPreDefinidoEnum.CARACTER;
             case INTEIRO  : 
-                return TipoEnum.INTEIRO;
+                return TipoPreDefinidoEnum.INTEIRO;
             case REAL     : 
-                return TipoEnum.REAL;
+                return TipoPreDefinidoEnum.REAL;
         }
-        return TipoEnum.BOOLEANO;   
+        return TipoPreDefinidoEnum.BOOLEANO;   
     }
 }
