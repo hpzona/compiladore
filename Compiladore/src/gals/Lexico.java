@@ -71,7 +71,12 @@ public class Lexico implements Constants {
     }
 
     private int nextState(char c, int state) {
-        int next = (SCANNER_TABLE[state][c]);
+        int next = 0;
+        try {
+            next = (SCANNER_TABLE[state][c]);
+        } catch (Exception e) {
+            
+        }
         return next;
     }
 
